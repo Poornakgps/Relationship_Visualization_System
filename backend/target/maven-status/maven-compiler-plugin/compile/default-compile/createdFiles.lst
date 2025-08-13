@@ -1,9 +1,0 @@
-com/flagright/Repository/UserConnectionRepository.class
-com/flagright/model/entity/User.class
-com/flagright/Repository/TransactionConnectionRepository.class
-com/flagright/model/entity/Transaction.class
-com/flagright/model/entity/TransactionConnection.class
-com/flagright/model/entity/UserConnection.class
-com/flagright/FlagrightApplication.class
-com/flagright/Repository/UserRepository.class
-com/flagright/Repository/TransactionRepository.class
