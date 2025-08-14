@@ -27,10 +27,10 @@ public class UserConnection {
     private Long userId2;
     
     @Property("relationshipType")
-    private String relationshipType; // SHARES_EMAIL, SHARES_PHONE, SHARES_ADDRESS
+    private String relationshipType;
     
     @Property("sharedValue")
-    private String sharedValue; // shared value between two users
+    private String sharedValue;
     
     @Property("createdAt")
     private LocalDateTime createdAt;

@@ -1,5 +1,12 @@
-// backend related
+# backend related
 mvnw
 mvnw.cmd
 .mvn
 target/
+
+# Node packages and build
+node_modules/
+dist/
+build/
+frontend/dist/
+frontend/package-lock.json

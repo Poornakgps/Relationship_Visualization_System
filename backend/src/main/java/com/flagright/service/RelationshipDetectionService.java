@@ -9,7 +9,7 @@ import com.flagright.Repository.TransactionRepository;
 import com.flagright.Repository.UserConnectionRepository;
 import com.flagright.Repository.TransactionConnectionRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional
 public class RelationshipDetectionService {
 
@@ -29,48 +28,93 @@ public class RelationshipDetectionService {
     private final TransactionConnectionRepository transactionConnectionRepository;
 
     public void detectUserRelationships(User user) {
-        log.info("Detecting relationships for user: {}", user.getEmail());
-        
-        if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
-            userRepository.createEmailConnections();
-            log.debug("Created email connections for user: {}", user.getEmail());
+
+        try {
+            if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
+                userRepository.createEmailConnections();
+            }
+            
+            if (user.getPhone() != null && !user.getPhone().trim().isEmpty()) {
+                userRepository.createPhoneConnections();
+            }
+
+            if (user.getAddress() != null && !user.getAddress().trim().isEmpty()) {
+                userRepository.createAddressConnections();
+            }
+            Long relationshipCount = userRepository.countUserRelationships();
+            
+        } catch (Exception e) {
         }
+        
+        try {
+            detectUserRelationshipsJava(user);
+        } catch (Exception e) {
+        }
+    }
+
+    private void detectUserRelationshipsJava(User user) {
+        
+        List<User> allUsers = userRepository.findAll();
         
         if (user.getPhone() != null && !user.getPhone().trim().isEmpty()) {
-            userRepository.createPhoneConnections();
-            log.debug("Created phone connections for user: {}", user.getPhone());
+            List<User> usersWithSamePhone = allUsers.stream()
+                .filter(u -> u.getPhone() != null && u.getPhone().equals(user.getPhone()) && !u.getId().equals(user.getId()))
+                .collect(Collectors.toList());
+            
+            for (User connectedUser : usersWithSamePhone) {
+                createUserConnectionIfNotExists(user.getId(), connectedUser.getId(), "SHARES_PHONE", user.getPhone());
+            }
         }
-
+        
         if (user.getAddress() != null && !user.getAddress().trim().isEmpty()) {
-            userRepository.createAddressConnections();
-            log.debug("Created address connections for user: {}", user.getAddress());
+            List<User> usersWithSameAddress = allUsers.stream()
+                .filter(u -> u.getAddress() != null && u.getAddress().equals(user.getAddress()) && !u.getId().equals(user.getId()))
+                .collect(Collectors.toList());
+            
+            for (User connectedUser : usersWithSameAddress) {
+                createUserConnectionIfNotExists(user.getId(), connectedUser.getId(), "SHARES_ADDRESS", user.getAddress());
+            }
+        }
+        
+        if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
+            List<User> usersWithSameEmail = allUsers.stream()
+                .filter(u -> u.getEmail() != null && u.getEmail().equals(user.getEmail()) && !u.getId().equals(user.getId()))
+                .collect(Collectors.toList());
+            
+            for (User connectedUser : usersWithSameEmail) {
+                createUserConnectionIfNotExists(user.getId(), connectedUser.getId(), "SHARES_EMAIL", user.getEmail());
+            }
+        }
+    }
+    
+    private void createUserConnectionIfNotExists(Long userId1, Long userId2, String relationshipType, String sharedValue) {
+
+        if (!userConnectionRepository.existsByUserId1AndUserId2AndRelationshipType(userId1, userId2, relationshipType) &&
+            !userConnectionRepository.existsByUserId1AndUserId2AndRelationshipType(userId2, userId1, relationshipType)) {
+            
+            UserConnection connection = new UserConnection(userId1, userId2, relationshipType, sharedValue);
+            userConnectionRepository.save(connection);
         }
     }
 
     public void detectTransactionRelationships(Transaction transaction) {
-        log.info("Detecting relationships for transaction: {}", transaction.getId());
         
         if (transaction.getDeviceId() != null && !transaction.getDeviceId().trim().isEmpty()) {
             transactionRepository.createDeviceConnections();
-            log.debug("Created device connections for transaction: {}", transaction.getId());
         }
         
         if (transaction.getIpAddress() != null && !transaction.getIpAddress().trim().isEmpty()) {
             transactionRepository.createIpConnections();
-            log.debug("Created IP connections for transaction: {}", transaction.getId());
         }
         
         if (transaction.getPaymentMethod() != null && !transaction.getPaymentMethod().trim().isEmpty()) {
             transactionRepository.createPaymentMethodConnections();
-            log.debug("Created payment method connections for transaction: {}", transaction.getId());
         }
         
     }
 
     public void detectAllRelationships() {
-        log.info("Running full relationship detection across all entities");
-  
-        // Try Cypher-based detection first, fallback to Java-based
+
         try {
             userRepository.createEmailConnections();
             userRepository.createPhoneConnections();
@@ -80,18 +124,14 @@ public class RelationshipDetectionService {
             transactionRepository.createIpConnections();
             transactionRepository.createPaymentMethodConnections();
         } catch (Exception e) {
-            log.warn("Cypher-based relationship detection failed, using Java-based approach", e);
             detectAllRelationshipsJava();
         }
         
-        log.info("Completed full relationship detection");
     }
 
     public void detectAllRelationshipsJava() {
-        log.info("Running Java-based relationship detection");
         
         List<User> allUsers = userRepository.findAll();
-        log.info("Processing {} users for relationship detection", allUsers.size());
         
         Map<String, List<User>> phoneGroups = allUsers.stream()
             .filter(u -> u.getPhone() != null && !u.getPhone().trim().isEmpty())
@@ -102,11 +142,10 @@ public class RelationshipDetectionService {
             .collect(Collectors.groupingBy(User::getAddress));
         
         createUserPhoneRelationships(phoneGroups);
-         
+        
         createUserAddressRelationships(addressGroups);
         
         List<Transaction> allTransactions = transactionRepository.findAll();
-        log.info("Processing {} transactions for relationship detection", allTransactions.size());
         
         Map<String, List<Transaction>> deviceGroups = allTransactions.stream()
             .filter(t -> t.getDeviceId() != null && !t.getDeviceId().trim().isEmpty())
@@ -124,7 +163,6 @@ public class RelationshipDetectionService {
         createTransactionIpRelationships(ipGroups);
         createTransactionPaymentRelationships(paymentGroups);
         
-        log.info("Java-based relationship detection completed");
     }
 
     private void createUserPhoneRelationships(Map<String, List<User>> phoneGroups) {
@@ -133,8 +171,7 @@ public class RelationshipDetectionService {
             List<User> usersWithSharedPhone = entry.getValue();
             if (usersWithSharedPhone.size() > 1) {
                 String sharedPhone = entry.getKey();
-                log.debug("Found {} users sharing phone: {}", usersWithSharedPhone.size(), sharedPhone);
-                
+
                 for (int i = 0; i < usersWithSharedPhone.size(); i++) {
                     for (int j = i + 1; j < usersWithSharedPhone.size(); j++) {
                         User user1 = usersWithSharedPhone.get(i);
@@ -155,7 +192,6 @@ public class RelationshipDetectionService {
                 }
             }
         }
-        log.info("Created {} phone relationships", relationshipsCreated);
     }
 
     private void createUserAddressRelationships(Map<String, List<User>> addressGroups) {
@@ -164,7 +200,6 @@ public class RelationshipDetectionService {
             List<User> usersWithSharedAddress = entry.getValue();
             if (usersWithSharedAddress.size() > 1) {
                 String sharedAddress = entry.getKey();
-                log.debug("Found {} users sharing address: {}", usersWithSharedAddress.size(), sharedAddress);
 
                 for (int i = 0; i < usersWithSharedAddress.size(); i++) {
                     for (int j = i + 1; j < usersWithSharedAddress.size(); j++) {
@@ -186,7 +221,6 @@ public class RelationshipDetectionService {
                 }
             }
         }
-        log.info("Created {} address relationships", relationshipsCreated);
     }
 
     private void createTransactionDeviceRelationships(Map<String, List<Transaction>> deviceGroups) {
@@ -209,7 +243,6 @@ public class RelationshipDetectionService {
                 }
             }
         }
-        log.info("Created {} device relationships", relationshipsCreated);
     }
 
     private void createTransactionIpRelationships(Map<String, List<Transaction>> ipGroups) {
@@ -232,7 +265,6 @@ public class RelationshipDetectionService {
                 }
             }
         }
-        log.info("Created {} IP relationships", relationshipsCreated);
     }
 
     private void createTransactionPaymentRelationships(Map<String, List<Transaction>> paymentGroups) {
@@ -255,6 +287,5 @@ public class RelationshipDetectionService {
                 }
             }
         }
-        log.info("Created {} payment method relationships", relationshipsCreated);
     }
 }

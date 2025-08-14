@@ -3,9 +3,10 @@ package com.flagright.controller;
 
 import com.flagright.model.entity.Transaction;
 import com.flagright.model.dto.CreateTransactionRequest;
+import com.flagright.model.dto.TransactionConnectionDto;
 import com.flagright.service.TransactionService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +18,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/transactions")
 @RequiredArgsConstructor
-@Slf4j
 public class TransactionController {
 
     private final TransactionService transactionService;
 
     @PostMapping
     public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody CreateTransactionRequest request) {
-
         Transaction transaction = new Transaction();
         transaction.setAmount(request.getAmount());
         transaction.setCurrency(request.getCurrency());
@@ -58,8 +57,8 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}/connections")
-    public ResponseEntity<List<Transaction>> getTransactionConnections(@PathVariable Long id) {
-        List<Transaction> connections = transactionService.getTransactionConnections(id);
+    public ResponseEntity<List<TransactionConnectionDto>> getTransactionConnections(@PathVariable Long id) {
+        List<TransactionConnectionDto> connections = transactionService.getTransactionConnectionsGrouped(id);
         return ResponseEntity.ok(connections);
     }
 
@@ -80,5 +79,4 @@ public class TransactionController {
         List<Transaction> transactions = transactionService.getHighValueTransactions(threshold);
         return ResponseEntity.ok(transactions);
     }
-
 } 

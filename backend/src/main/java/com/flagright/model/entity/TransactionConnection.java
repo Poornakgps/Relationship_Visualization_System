@@ -27,10 +27,10 @@ public class TransactionConnection {
     private Long transactionId2;
     
     @Property("relationshipType")
-    private String relationshipType; // SAME_DEVICE, SAME_IP, SAME_PAYMENT_METHOD
+    private String relationshipType;
     
     @Property("sharedValue")
-    private String sharedValue; // shared value between two transactions
+    private String sharedValue;
     
     @Property("createdAt")
     private LocalDateTime createdAt;

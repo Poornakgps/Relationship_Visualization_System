@@ -41,14 +41,14 @@ public interface TransactionRepository extends Neo4jRepository<Transaction, Long
            "MERGE (t1)-[:SAME_PAYMENT_METHOD]-(t2)")
     void createPaymentMethodConnections();
     
-    // Relationship-based queries using the actual relationship pattern
+
     @Query("MATCH (u:User)-[:SENT]-(t:Transaction) WHERE u.id = $userId RETURN t ORDER BY t.createdAt DESC")
     List<Transaction> findTransactionsBySender(@Param("userId") Long userId);
     
     @Query("MATCH (u:User)-[:RECEIVED]-(t:Transaction) WHERE u.id = $userId RETURN t ORDER BY t.createdAt DESC")
     List<Transaction> findTransactionsByRecipient(@Param("userId") Long userId);
 
-    // Explicit relationship creation queries
+
     @Query("MATCH (u:User), (t:Transaction) " +
            "WHERE u.id = $senderId AND t.id = $transactionId " +
            "MERGE (u)-[:SENT]->(t)")

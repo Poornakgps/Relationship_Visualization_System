@@ -7,7 +7,7 @@ import com.flagright.model.dto.UserConnectionDto;
 import com.flagright.service.UserService;
 import com.flagright.service.RelationshipDetectionService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +18,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -26,7 +25,6 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserRequest request) {
-        
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
@@ -61,21 +59,18 @@ public class UserController {
 
     @GetMapping("/{id}/connections")
     public ResponseEntity<List<UserConnectionDto>> getUserConnections(@PathVariable Long id) {
-        log.info("Fetching connections for user ID: {}", id);
         List<UserConnectionDto> connections = userService.getUserConnections(id);
         return ResponseEntity.ok(connections);
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<User>> searchUsers(@RequestParam String term) {
-        log.info("Searching users with term: {}", term);
         List<User> users = userService.searchUsers(term);
         return ResponseEntity.ok(users);
     }
 
     @PostMapping("/detect-relationships")
     public ResponseEntity<String> detectAllRelationships() {
-        log.info("Manually triggering relationship detection");
         relationshipDetectionService.detectAllRelationships();
         return ResponseEntity.ok("Relationship detection completed successfully");
     }
