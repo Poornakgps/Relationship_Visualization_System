@@ -3,11 +3,15 @@ package com.flagright.service;
 import com.flagright.model.entity.Transaction;
 import com.flagright.model.entity.TransactionConnection;
 import com.flagright.model.entity.User;
+import com.flagright.model.dto.CreateTransactionRequest;
 import com.flagright.model.dto.TransactionConnectionDto;
-import com.flagright.Repository.TransactionRepository;
 import com.flagright.Repository.TransactionConnectionRepository;
+import com.flagright.Repository.TransactionRepository;
+import com.flagright.Repository.UserRepository;
 import com.flagright.exception.TransactionNotFoundException;
+import com.flagright.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +25,7 @@ import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class TransactionService {
     
@@ -30,6 +35,9 @@ public class TransactionService {
     private final RelationshipDetectionService relationshipDetectionService;
 
     public Transaction createTransaction(Transaction transaction, Long senderId, Long recipientId) {
+        log.info("Creating transaction from user {} to user {} for amount {}", 
+                senderId, recipientId, transaction.getAmount());
+
         User sender = userService.getUserById(senderId);
         User recipient = userService.getUserById(recipientId);
 
@@ -47,10 +55,13 @@ public class TransactionService {
 
         relationshipDetectionService.detectTransactionRelationships(savedTransaction);
 
+        log.info("Transaction created with ID: {}", savedTransaction.getId());
         return savedTransaction;
     }
 
     public Transaction updateTransactionStatus(Long transactionId, String status) {
+        log.info("Updating transaction {} status to {}", transactionId, status);
+        
         Transaction transaction = getTransactionById(transactionId);
         transaction.setStatus(status);
         
@@ -69,11 +80,14 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<Transaction> getAllTransactions() {
+        log.info("Fetching all transactions");
         return transactionRepository.findAll();
     }
 
     @Transactional(readOnly = true)
     public List<Transaction> getTransactionsByUser(Long userId, String type) {
+        log.info("Fetching {} transactions for user {}", type, userId);
+        
         if ("sent".equalsIgnoreCase(type)) {
             return transactionRepository.findTransactionsBySender(userId);
         } else if ("received".equalsIgnoreCase(type)) {
@@ -85,6 +99,8 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<Transaction> getTransactionConnections(Long transactionId) {
+        log.info("Fetching connections for transaction ID: {}", transactionId);
+        
         getTransactionById(transactionId);
         
         List<TransactionConnection> connections = transactionConnectionRepository
@@ -101,6 +117,7 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<TransactionConnectionDto> getTransactionConnectionsGrouped(Long transactionId) {
+        log.info("Fetching grouped connections for transaction ID: {}", transactionId);
         getTransactionById(transactionId);
         
         List<TransactionConnection> connections = transactionConnectionRepository
@@ -139,16 +156,19 @@ public class TransactionService {
 
     @Transactional(readOnly = true)
     public List<Transaction> getTransactionsByStatus(String status) {
+        log.info("Fetching transactions with status: {}", status);
         return transactionRepository.findByStatus(status);
     }
 
     @Transactional(readOnly = true)
     public List<Transaction> getHighValueTransactions(BigDecimal threshold) {
+        log.info("Fetching transactions above amount: {}", threshold);
         return transactionRepository.findByAmountGreaterThan(threshold);
     }
 
     @Transactional(readOnly = true)
     public List<Transaction> getTransactionsByDateRange(LocalDateTime start, LocalDateTime end) {
+        log.info("Fetching transactions between {} and {}", start, end);
         return transactionRepository.findByCreatedAtBetween(start, end);
     }
 
@@ -159,6 +179,10 @@ public class TransactionService {
         
         if (transaction.getCurrency() == null || transaction.getCurrency().trim().isEmpty()) {
             throw new IllegalArgumentException("Currency is required");
+        }
+        
+        if (transaction.getAmount().compareTo(new BigDecimal("1000000")) > 0) {
+            log.warn("High-value transaction detected: {}", transaction.getAmount());
         }
     }
 }

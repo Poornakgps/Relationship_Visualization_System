@@ -13,13 +13,8 @@ import java.util.Optional;
 public interface UserRepository extends Neo4jRepository<User, Long> {
 
     Optional<User> findByEmail(String email);
-
-    Optional<User> findByPhone(String phone);
     
     List<User> findByFirstNameContainingIgnoreCase(String firstName);
-
-    @Query("MATCH (u:User)-[r]-(connected:User) WHERE u.id = $userId RETURN connected")
-    List<User> findUserConnections(@Param("userId") Long userId);
 
     @Query("MATCH ()-[r:SHARES_EMAIL|SHARES_PHONE|SHARES_ADDRESS]-() RETURN count(r)")
     Long countUserRelationships();
@@ -41,7 +36,4 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
            "AND u1.address = u2.address AND u1.id <> u2.id " +
            "MERGE (u1)-[:SHARES_ADDRESS]-(u2)")
     void createAddressConnections();
-    
-    @Query("MATCH (u:User) WHERE u.email = $email OR u.phone = $phone RETURN u")
-    List<User> findByEmailOrPhone(@Param("email") String email, @Param("phone") String phone);
 }

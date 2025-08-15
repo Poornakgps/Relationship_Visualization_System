@@ -22,7 +22,6 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Transaction {
-    
     @Id
     @GeneratedValue
     @EqualsAndHashCode.Include

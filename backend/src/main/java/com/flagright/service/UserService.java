@@ -3,11 +3,11 @@ package com.flagright.service;
 import com.flagright.model.entity.User;
 import com.flagright.model.entity.UserConnection;
 import com.flagright.model.dto.UserConnectionDto;
-import com.flagright.Repository.UserRepository;
 import com.flagright.Repository.UserConnectionRepository;
+import com.flagright.Repository.UserRepository;
 import com.flagright.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +15,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class UserService {
     
@@ -29,6 +31,7 @@ public class UserService {
     private final RelationshipDetectionService relationshipDetectionService;
 
     public User createUser(User user) {
+        log.info("Creating new user with email: {}", user.getEmail());
 
         Optional<User> existingUser = userRepository.findByEmail(user.getEmail());
 
@@ -43,10 +46,13 @@ public class UserService {
 
         relationshipDetectionService.detectUserRelationships(savedUser);
 
+        log.info("User created successfully with ID: {}", savedUser.getId());
         return savedUser;
     }
 
     public User updateUser(Long userId, User userUpdates) {
+        log.info("Updating user with ID: {}", userId);
+
         User existingUser = getUserById(userId);
 
         if (userUpdates.getFirstName() != null) {
@@ -73,23 +79,24 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public User getUserById(Long userId) {
+        log.info("Fetching user with id "+ userId);
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
     }
 
     @Transactional(readOnly=true)
     public List<User> getAllUsers() {
+        log.info("Fetching all users");
         return userRepository.findAll();
     }
 
     @Transactional(readOnly = true)
     public List<UserConnectionDto> getUserConnections(Long userId) {
-        getUserById(userId); // Validate user exists
+        log.info("Fetching connections for userId: " + userId);
+        getUserById(userId);
         
-        // Get all UserConnection entities for this user
         List<UserConnection> connections = userConnectionRepository.findByUserId1OrUserId2(userId, userId);
         
-        // Group connections by connected user ID
         Map<Long, UserConnectionDto> groupedConnections = new HashMap<>();
         
         for (UserConnection conn : connections) {
@@ -127,6 +134,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<User> searchUsers(String searchTerm) {
+        log.info("Searching users with term: " + searchTerm);
         
         if (searchTerm == null || searchTerm.trim().isEmpty()) {
             return getAllUsers();

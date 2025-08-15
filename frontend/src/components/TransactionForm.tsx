@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { X, CreditCard, DollarSign, User, Users, Smartphone, Globe, FileText, Save, Edit } from 'lucide-react';
+import { X, CreditCard, DollarSign, User, Users, Smartphone, Globe, FileText, Save } from 'lucide-react';
 import { useCreateTransaction, useUsers } from '@/hooks/useGraphData';
-import { CreateTransactionRequest, Transaction } from '@/types';
+import { CreateTransactionRequest } from '@/types';
 
 interface TransactionFormProps {
   isOpen: boolean;
   onClose: () => void;
-  editingTransaction?: Transaction | null;
 }
 
-const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP'];
+const CURRENCIES = ['INR'];
 const PAYMENT_METHODS = ['credit_card', 'debit_card', 'bank_transfer', 'paypal', 'apple_pay', 'google_pay', 'crypto', 'cash'];
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, editingTransaction }) => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState<CreateTransactionRequest>({
     senderId: 0,
     recipientId: 0,
@@ -30,39 +29,22 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
   const createTransactionMutation = useCreateTransaction();
   const { data: users = [] } = useUsers();
 
-  const isEditing = !!editingTransaction;
-
-  // Reset form when modal opens or editingTransaction changes
+  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
-      if (editingTransaction) {
-        // Pre-fill form with existing transaction data
-        setFormData({
-          senderId: editingTransaction.sender.id,
-          recipientId: editingTransaction.recipient.id,
-          amount: editingTransaction.amount,
-          currency: editingTransaction.currency,
-          description: editingTransaction.description,
-          ipAddress: editingTransaction.ipAddress || '',
-          deviceId: editingTransaction.deviceId || '',
-          paymentMethod: editingTransaction.paymentMethod,
-        });
-      } else {
-        // Reset form for new transaction
-        setFormData({
-          senderId: 0,
-          recipientId: 0,
-          amount: 0,
-          currency: 'INR',
-          description: '',
-          ipAddress: '',
-          deviceId: '',
-          paymentMethod: 'credit_card',
-        });
-      }
+      setFormData({
+        senderId: 0,
+        recipientId: 0,
+        amount: 0,
+        currency: 'INR',
+        description: '',
+        ipAddress: '',
+        deviceId: '',
+        paymentMethod: 'credit_card',
+      });
       setErrors({});
     }
-  }, [isOpen, editingTransaction]);
+  }, [isOpen]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -105,16 +87,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
     setIsSubmitting(true);
 
     try {
-      if (isEditing) {
-        // For editing, we'll just show a success message since full transaction editing
-        // might not be allowed in a real banking system for security reasons
-        // You could implement status updates or other limited edits here
-        console.log('Transaction edit submitted:', formData);
-        alert('Transaction edit functionality would be implemented here. For security reasons, most transaction fields cannot be modified after creation.');
-      } else {
-        await createTransactionMutation.mutateAsync(formData);
-      }
-      
+      await createTransactionMutation.mutateAsync(formData);
       onClose();
       
       // Reset form
@@ -129,7 +102,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
         paymentMethod: 'credit_card',
       });
     } catch (error) {
-      console.error('Error processing transaction:', error);
+      console.error('Error creating transaction:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -152,14 +125,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center">
-            {isEditing ? (
-              <Edit className="w-6 h-6 text-blue-600 mr-3" />
-            ) : (
-              <CreditCard className="w-6 h-6 text-green-600 mr-3" />
-            )}
-            <h2 className="text-xl font-semibold text-gray-900">
-              {isEditing ? 'Edit Transaction' : 'Create New Transaction'}
-            </h2>
+            <CreditCard className="w-6 h-6 text-green-600 mr-3" />
+            <h2 className="text-xl font-semibold text-gray-900">Create New Transaction</h2>
           </div>
           <button
             onClick={onClose}
@@ -171,14 +138,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[calc(90vh-88px)] overflow-y-auto">
-          {isEditing && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-              <p className="text-sm text-yellow-700">
-                <strong>Note:</strong> In a real banking system, most transaction fields cannot be modified after creation for security and compliance reasons. This form shows what the interface might look like.
-              </p>
-            </div>
-          )}
-
           {/* Sender and Recipient */}
           <div className="grid grid-cols-1 gap-4">
             <div>
@@ -191,8 +150,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
                   id="senderId"
                   value={formData.senderId}
                   onChange={(e) => handleInputChange('senderId', parseInt(e.target.value))}
-                  className={`input pl-10 ${errors.senderId ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100' : ''}`}
-                  disabled={isEditing}
+                  className={`input pl-10 ${errors.senderId ? 'border-red-500' : ''}`}
                 >
                   <option value={0}>Select sender...</option>
                   {users.map((user) => (
@@ -217,8 +175,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
                   id="recipientId"
                   value={formData.recipientId}
                   onChange={(e) => handleInputChange('recipientId', parseInt(e.target.value))}
-                  className={`input pl-10 ${errors.recipientId ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100' : ''}`}
-                  disabled={isEditing}
+                  className={`input pl-10 ${errors.recipientId ? 'border-red-500' : ''}`}
                 >
                   <option value={0}>Select recipient...</option>
                   {users.map((user) => (
@@ -249,9 +206,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
                   min="0"
                   value={formData.amount || ''}
                   onChange={(e) => handleInputChange('amount', parseFloat(e.target.value) || 0)}
-                  className={`input pl-10 ${errors.amount ? 'border-red-500' : ''} ${isEditing ? 'bg-gray-100' : ''}`}
+                  className={`input pl-10 ${errors.amount ? 'border-red-500' : ''}`}
                   placeholder="100.00"
-                  disabled={isEditing}
                 />
               </div>
               {errors.amount && (
@@ -267,8 +223,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
                 id="currency"
                 value={formData.currency}
                 onChange={(e) => handleInputChange('currency', e.target.value)}
-                className={`input ${isEditing ? 'bg-gray-100' : ''}`}
-                disabled={isEditing}
+                className="input"
               >
                 {CURRENCIES.map((currency) => (
                   <option key={currency} value={currency}>
@@ -376,12 +331,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ isOpen, onClose, edit
               {isSubmitting ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isEditing ? 'Updating...' : 'Creating...'}
+                  Creating...
                 </div>
               ) : (
                 <div className="flex items-center">
                   <Save className="w-4 h-4 mr-2" />
-                  {isEditing ? 'Update Transaction' : 'Create Transaction'}
+                  Create Transaction
                 </div>
               )}
             </button>

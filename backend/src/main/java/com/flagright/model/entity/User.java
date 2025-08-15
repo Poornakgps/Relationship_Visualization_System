@@ -15,17 +15,18 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+
 @Node("User")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded=true)
 public class User {
     
     @Id
     @GeneratedValue
     @EqualsAndHashCode.Include
-    private Long Id;
+    private Long id;
 
     @Property("email")
     private String email;
@@ -51,6 +52,14 @@ public class User {
     @Property("updatedAt")
     private LocalDateTime updatedAt;
 
+    @JsonIgnore
+    @Relationship(type = "SENT", direction = Relationship.Direction.OUTGOING)
+    private Set<Transaction> sentTransactions = new HashSet<>();
+
+    @JsonIgnore
+    @Relationship(type = "RECEIVED", direction = Relationship.Direction.INCOMING)
+    private Set<Transaction> receivedTransactions = new HashSet<>();
+    
     @JsonIgnore
     @Relationship(type = "SHARES_EMAIL")
     private Set<User> emailConnections = new HashSet<>();

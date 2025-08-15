@@ -20,7 +20,6 @@ public class TransactionConnectionDto {
     private Map<String, String> sharedValues;
     private LocalDateTime createdAt;
     
-
     public TransactionConnectionDto(Transaction transaction, String relationshipType, String sharedValue) {
         this.transaction = transaction;
         this.relationshipTypes = new ArrayList<>();
@@ -30,7 +29,6 @@ public class TransactionConnectionDto {
         this.createdAt = LocalDateTime.now();
     }
     
-
     public TransactionConnectionDto(Transaction transaction, String relationshipType, String sharedValue, LocalDateTime createdAt) {
         this.transaction = transaction;
         this.relationshipTypes = new ArrayList<>();
@@ -40,7 +38,6 @@ public class TransactionConnectionDto {
         this.createdAt = createdAt;
     }
     
-
     public void addRelationship(String relationshipType, String sharedValue, LocalDateTime relationshipCreatedAt) {
         if (this.relationshipTypes == null) {
             this.relationshipTypes = new ArrayList<>();
@@ -53,14 +50,12 @@ public class TransactionConnectionDto {
             this.relationshipTypes.add(relationshipType);
             this.sharedValues.put(relationshipType, sharedValue);
             
-
             if (this.createdAt == null || (relationshipCreatedAt != null && relationshipCreatedAt.isBefore(this.createdAt))) {
                 this.createdAt = relationshipCreatedAt;
             }
         }
     }
     
-
     public String getRelationshipTypesAsString() {
         return relationshipTypes != null ? String.join(", ", relationshipTypes) : "";
     }

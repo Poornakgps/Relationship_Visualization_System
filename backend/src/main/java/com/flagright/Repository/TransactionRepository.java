@@ -19,10 +19,6 @@ public interface TransactionRepository extends Neo4jRepository<Transaction, Long
     
     List<Transaction> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
     
-    @Query("MATCH (t:Transaction)-[r:SAME_DEVICE|SAME_IP|SAME_PAYMENT_METHOD]-(connected:Transaction) " +
-           "WHERE t.id = $transactionId RETURN connected")
-    List<Transaction> findTransactionConnections(@Param("transactionId") Long transactionId);
-
     @Query("MATCH (t1:Transaction), (t2:Transaction) " +
            "WHERE t1.deviceId IS NOT NULL AND t2.deviceId IS NOT NULL " +
            "AND t1.deviceId = t2.deviceId AND t1.id <> t2.id " +
@@ -41,13 +37,11 @@ public interface TransactionRepository extends Neo4jRepository<Transaction, Long
            "MERGE (t1)-[:SAME_PAYMENT_METHOD]-(t2)")
     void createPaymentMethodConnections();
     
-
     @Query("MATCH (u:User)-[:SENT]-(t:Transaction) WHERE u.id = $userId RETURN t ORDER BY t.createdAt DESC")
     List<Transaction> findTransactionsBySender(@Param("userId") Long userId);
     
     @Query("MATCH (u:User)-[:RECEIVED]-(t:Transaction) WHERE u.id = $userId RETURN t ORDER BY t.createdAt DESC")
     List<Transaction> findTransactionsByRecipient(@Param("userId") Long userId);
-
 
     @Query("MATCH (u:User), (t:Transaction) " +
            "WHERE u.id = $senderId AND t.id = $transactionId " +
@@ -58,5 +52,5 @@ public interface TransactionRepository extends Neo4jRepository<Transaction, Long
            "WHERE u.id = $recipientId AND t.id = $transactionId " +
            "MERGE (t)-[:RECEIVED]->(u)")
     void createReceivedRelationship(@Param("recipientId") Long recipientId, @Param("transactionId") Long transactionId);
-    
+
 }
