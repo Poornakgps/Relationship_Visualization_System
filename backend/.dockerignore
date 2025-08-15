@@ -1,0 +1,41 @@
+# Maven
+target/
+!target/*.jar
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Tests (exclude from production builds)
+src/test/
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# Environment
+.env*
+
+# Temporary files
+tmp/
+temp/
+
+# Maven wrapper (not needed since we use Maven from base image)
+.mvn/
+mvnw
+mvnw.cmd 
