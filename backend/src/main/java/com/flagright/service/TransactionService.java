@@ -34,6 +34,7 @@ public class TransactionService {
     private final UserService userService;
     private final RelationshipDetectionService relationshipDetectionService;
 
+    /** Creates a new transaction between two users */
     public Transaction createTransaction(Transaction transaction, Long senderId, Long recipientId) {
         log.info("Creating transaction from user {} to user {} for amount {}", 
                 senderId, recipientId, transaction.getAmount());
@@ -59,6 +60,7 @@ public class TransactionService {
         return savedTransaction;
     }
 
+    /** Updates transaction status */
     public Transaction updateTransactionStatus(Long transactionId, String status) {
         log.info("Updating transaction {} status to {}", transactionId, status);
         
@@ -72,18 +74,21 @@ public class TransactionService {
         return transactionRepository.save(transaction);
     }
 
+    /** Gets transaction by ID */
     @Transactional(readOnly = true)
     public Transaction getTransactionById(Long transactionId) {
         return transactionRepository.findById(transactionId)
                 .orElseThrow(() -> new TransactionNotFoundException("Transaction not found with ID: " + transactionId));
     }
 
+    /** Gets all transactions */
     @Transactional(readOnly = true)
     public List<Transaction> getAllTransactions() {
         log.info("Fetching all transactions");
         return transactionRepository.findAll();
     }
 
+    /** Gets transactions sent or received by a user */
     @Transactional(readOnly = true)
     public List<Transaction> getTransactionsByUser(Long userId, String type) {
         log.info("Fetching {} transactions for user {}", type, userId);
@@ -97,6 +102,7 @@ public class TransactionService {
         }
     }
 
+    /** Gets connected transactions */
     @Transactional(readOnly = true)
     public List<Transaction> getTransactionConnections(Long transactionId) {
         log.info("Fetching connections for transaction ID: {}", transactionId);
@@ -115,6 +121,7 @@ public class TransactionService {
         return transactionRepository.findAllById(connectedTransactionIds);
     }
 
+    /** Gets transaction connections with relationship details */
     @Transactional(readOnly = true)
     public List<TransactionConnectionDto> getTransactionConnectionsGrouped(Long transactionId) {
         log.info("Fetching grouped connections for transaction ID: {}", transactionId);
@@ -154,24 +161,28 @@ public class TransactionService {
         return new ArrayList<>(groupedConnections.values());
     }
 
+    /** Gets transactions by status */
     @Transactional(readOnly = true)
     public List<Transaction> getTransactionsByStatus(String status) {
         log.info("Fetching transactions with status: {}", status);
         return transactionRepository.findByStatus(status);
     }
 
+    /** Gets high value transactions above threshold */
     @Transactional(readOnly = true)
     public List<Transaction> getHighValueTransactions(BigDecimal threshold) {
         log.info("Fetching transactions above amount: {}", threshold);
         return transactionRepository.findByAmountGreaterThan(threshold);
     }
 
+    /** Gets transactions within date range */
     @Transactional(readOnly = true)
     public List<Transaction> getTransactionsByDateRange(LocalDateTime start, LocalDateTime end) {
         log.info("Fetching transactions between {} and {}", start, end);
         return transactionRepository.findByCreatedAtBetween(start, end);
     }
 
+    /** Validates transaction data */
     private void validateTransaction(Transaction transaction) {
         if (transaction.getAmount() == null || transaction.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Transaction amount must be positive");

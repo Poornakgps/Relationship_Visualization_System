@@ -29,6 +29,7 @@ public class RelationshipDetectionService {
     private final UserConnectionRepository userConnectionRepository;
     private final TransactionConnectionRepository transactionConnectionRepository;
 
+    /** Detects relationships for a specific user */
     public void detectUserRelationships(User user) {
         log.info("Detecting relationships for user: {}", user.getEmail());
         
@@ -62,6 +63,7 @@ public class RelationshipDetectionService {
         }
     }
 
+    /** Java-based relationship detection for a user */
     private void detectUserRelationshipsJava(User user) {
         log.debug("Running Java-based relationship detection for user: {}", user.getEmail());
         
@@ -112,6 +114,7 @@ public class RelationshipDetectionService {
         }
     }
 
+    /** Detects relationships for a specific transaction */
     public void detectTransactionRelationships(Transaction transaction) {
         log.info("Detecting relationships for transaction: {}", transaction.getId());
         
@@ -132,6 +135,7 @@ public class RelationshipDetectionService {
         
     }
 
+    /** Detects all relationships across all users and transactions */
     public void detectAllRelationships() {
         log.info("Running full relationship detection across all entities");
   
@@ -152,6 +156,7 @@ public class RelationshipDetectionService {
         log.info("Completed full relationship detection");
     }
 
+    /** Java-based relationship detection for all entities */
     public void detectAllRelationshipsJava() {
         log.info("Running Java-based relationship detection");
         

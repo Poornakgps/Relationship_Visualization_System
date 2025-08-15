@@ -26,6 +26,7 @@ public class UserController {
     private final UserService userService;
     private final RelationshipDetectionService relationshipDetectionService;
 
+    /** Creates a new user */
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserRequest request) {
         log.info("Creating user with email: {}", request.getEmail());
@@ -42,6 +43,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
+    /** Gets all users */
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         log.info("Fetching all users");
@@ -49,6 +51,7 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    /** Gets user by ID */
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         log.info("Fetching user with ID: {}", id);
@@ -56,6 +59,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    /** Updates user information */
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userUpdates) {
         log.info("Updating user with ID: {}", id);
@@ -65,6 +69,7 @@ public class UserController {
 
 
 
+    /** Gets user connections */
     @GetMapping("/{id}/connections")
     public ResponseEntity<List<UserConnectionDto>> getUserConnections(@PathVariable Long id) {
         log.info("Fetching connections for user ID: {}", id);
@@ -72,6 +77,7 @@ public class UserController {
         return ResponseEntity.ok(connections);
     }
 
+    /** Searches users by name */
     @GetMapping("/search")
     public ResponseEntity<List<User>> searchUsers(@RequestParam String term) {
         log.info("Searching users with term: {}", term);
@@ -79,6 +85,7 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    /** Manually triggers relationship detection */
     @PostMapping("/detect-relationships")
     public ResponseEntity<String> detectAllRelationships() {
         log.info("Manually triggering relationship detection");

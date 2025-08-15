@@ -23,6 +23,7 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
+    /** Creates a new transaction */
     @PostMapping
     public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody CreateTransactionRequest request) {
         log.info("Creating transaction from user {} to user {}", request.getSenderId(), request.getRecipientId());
@@ -41,6 +42,7 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTransaction);
     }
 
+    /** Gets all transactions */
     @GetMapping
     public ResponseEntity<List<Transaction>> getAllTransactions() {
         log.info("Fetching all transactions");
@@ -48,6 +50,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
+    /** Gets transaction by ID */
     @GetMapping("/{id}")
     public ResponseEntity<Transaction> getTransactionById(@PathVariable Long id) {
         log.info("Fetching transaction with ID: {}", id);
@@ -55,6 +58,7 @@ public class TransactionController {
         return ResponseEntity.ok(transaction);
     }
 
+    /** Updates transaction status */
     @PutMapping("/{id}/status")
     public ResponseEntity<Transaction> updateTransactionStatus(@PathVariable Long id, @RequestParam String status) {
         log.info("Updating transaction {} status to {}", id, status);
@@ -62,6 +66,7 @@ public class TransactionController {
         return ResponseEntity.ok(updatedTransaction);
     }
 
+    /** Gets transaction connections */
     @GetMapping("/{id}/connections")
     public ResponseEntity<List<TransactionConnectionDto>> getTransactionConnections(@PathVariable Long id) {
         log.info("Fetching connections for transaction ID: {}", id);
@@ -69,6 +74,7 @@ public class TransactionController {
         return ResponseEntity.ok(connections);
     }
 
+    /** Gets user transactions by type */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Transaction>> getTransactionsByUser(@PathVariable Long userId, @RequestParam String type) {
         log.info("Fetching {} transactions for user {}", type, userId);
@@ -76,6 +82,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
+    /** Gets transactions by status */
     @GetMapping("/status/{status}")
     public ResponseEntity<List<Transaction>> getTransactionsByStatus(@PathVariable String status) {
         log.info("Fetching transactions with status: {}", status);
@@ -83,6 +90,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactions);
     }
 
+    /** Gets high value transactions */
     @GetMapping("/high-value")
     public ResponseEntity<List<Transaction>> getHighValueTransactions(@RequestParam BigDecimal threshold) {
         log.info("Fetching transactions above amount: {}", threshold);

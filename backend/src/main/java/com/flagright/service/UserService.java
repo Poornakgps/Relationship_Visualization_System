@@ -30,6 +30,7 @@ public class UserService {
     private final UserConnectionRepository userConnectionRepository;
     private final RelationshipDetectionService relationshipDetectionService;
 
+    /** Creates a new user */
     public User createUser(User user) {
         log.info("Creating new user with email: {}", user.getEmail());
 
@@ -50,6 +51,7 @@ public class UserService {
         return savedUser;
     }
 
+    /** Updates user information */
     public User updateUser(Long userId, User userUpdates) {
         log.info("Updating user with ID: {}", userId);
 
@@ -77,6 +79,7 @@ public class UserService {
         return updatedUser;
     }
 
+    /** Gets user by ID */
     @Transactional(readOnly = true)
     public User getUserById(Long userId) {
         log.info("Fetching user with id "+ userId);
@@ -84,12 +87,14 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
     }
 
+    /** Gets all users */
     @Transactional(readOnly=true)
     public List<User> getAllUsers() {
         log.info("Fetching all users");
         return userRepository.findAll();
     }
 
+    /** Gets user connections with relationship details */
     @Transactional(readOnly = true)
     public List<UserConnectionDto> getUserConnections(Long userId) {
         log.info("Fetching connections for userId: " + userId);
@@ -127,11 +132,13 @@ public class UserService {
         return new ArrayList<>(groupedConnections.values());
     }
 
+    /** Finds user by email */
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
+    /** Searches users by first name */
     @Transactional(readOnly = true)
     public List<User> searchUsers(String searchTerm) {
         log.info("Searching users with term: " + searchTerm);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Network, Users, CreditCard, BarChart3, RefreshCw, AlertTriangle, Link, GitBranch } from 'lucide-react';
+import { Search, Network, Users, CreditCard, AlertTriangle, Link, GitBranch, RefreshCw } from 'lucide-react';
 import { useGraphData, useHealthCheck } from '@/hooks/useGraphData';
 import { FilterProvider, useFilteredGraphData } from '@/hooks/useFilters';
 import GraphVisualization from '@/components/GraphVisualization';
@@ -7,12 +7,11 @@ import UserList from '@/components/UserList';
 import TransactionList from '@/components/TransactionList';
 import UserConnections from '@/components/UserConnections';
 import TransactionConnections from '@/components/TransactionConnections';
-import NetworkStats from '@/components/NetworkStats';
 import SearchFilters from '@/components/SearchFilters';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-type ActivePanel = 'graph' | 'users' | 'transactions' | 'user-connections' | 'transaction-connections' | 'stats';
+type ActivePanel = 'graph' | 'users' | 'transactions' | 'user-connections' | 'transaction-connections';
 
 const AppContent: React.FC = () => {
   const [activePanel, setActivePanel] = useState<ActivePanel>('graph');
@@ -29,7 +28,6 @@ const AppContent: React.FC = () => {
     { id: 'transactions' as ActivePanel, label: 'Transactions', icon: CreditCard },
     { id: 'user-connections' as ActivePanel, label: 'User Links', icon: Link },
     { id: 'transaction-connections' as ActivePanel, label: 'Transaction Links', icon: GitBranch },
-    { id: 'stats' as ActivePanel, label: 'Analytics', icon: BarChart3 },
   ];
 
   const renderMainContent = () => {
@@ -204,34 +202,6 @@ const AppContent: React.FC = () => {
             </div>
             <div className="flex-1 min-h-0">
               <TransactionConnections />
-            </div>
-          </div>
-        );
-
-      case 'stats':
-        return (
-          <div className="flex-1 flex flex-col">
-            <div className="p-4 border-b bg-white">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Network Analytics
-                </h2>
-                <button
-                  onClick={refetch}
-                  className="btn btn-secondary btn-sm"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 p-4">
-              {filteredGraphData ? (
-                <NetworkStats graphData={filteredGraphData} />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-500">No data available for analytics</p>
-                </div>
-              )}
             </div>
           </div>
         );
