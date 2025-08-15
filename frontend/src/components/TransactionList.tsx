@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Edit2 } from 'lucide-react';
 import { useTransactions } from '@/hooks/useGraphData';
 import { formatCurrency, formatDate } from '@/utils';
 import LoadingSpinner from './LoadingSpinner';
 import TransactionForm from './TransactionForm';
+import { Transaction } from '@/types';
 
 interface TransactionListProps {
   searchQuery: string;
@@ -12,6 +13,7 @@ interface TransactionListProps {
 const TransactionList: React.FC<TransactionListProps> = ({ searchQuery }) => {
   const { data: transactions = [], isLoading, error } = useTransactions();
   const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const filteredTransactions = useMemo(() => {
     if (!searchQuery) return transactions;
@@ -24,7 +26,15 @@ const TransactionList: React.FC<TransactionListProps> = ({ searchQuery }) => {
     );
   }, [transactions, searchQuery]);
 
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsTransactionFormOpen(true);
+  };
 
+  const handleCloseForm = () => {
+    setIsTransactionFormOpen(false);
+    setEditingTransaction(null);
+  };
 
   if (isLoading) {
     return <LoadingSpinner message="Loading transactions..." className="p-8" />;
@@ -81,7 +91,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ searchQuery }) => {
             <th>Description</th>
             <th>Payment Method</th>
             <th>Created</th>
-
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -101,6 +111,15 @@ const TransactionList: React.FC<TransactionListProps> = ({ searchQuery }) => {
               <td className="text-gray-500">
                 {formatDate(transaction.createdAt)}
               </td>
+              <td>
+                <button
+                  onClick={() => handleEditTransaction(transaction)}
+                  className="btn btn-sm btn-secondary"
+                  title="Edit Transaction"
+                >
+                  <Edit2 className="w-3 h-3" />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -116,10 +135,9 @@ const TransactionList: React.FC<TransactionListProps> = ({ searchQuery }) => {
       {/* Transaction Form Modal */}
       <TransactionForm
         isOpen={isTransactionFormOpen}
-        onClose={() => setIsTransactionFormOpen(false)}
+        onClose={handleCloseForm}
+        editingTransaction={editingTransaction}
       />
-
-
     </div>
   );
 };
