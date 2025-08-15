@@ -2,7 +2,6 @@
 package com.flagright.controller;
 
 import com.flagright.model.entity.User;
-import com.flagright.Repository.UserRepository;
 import com.flagright.model.dto.CreateUserRequest;
 import com.flagright.model.dto.UserConnectionDto;
 import com.flagright.service.UserService;
