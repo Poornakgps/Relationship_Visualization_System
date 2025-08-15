@@ -14,3 +14,5 @@ build/
 frontend/dist/
 frontend/package-lock.json
 frontend/.vite
+
+venv/

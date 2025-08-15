@@ -91,6 +91,55 @@ services:
       - backend
     networks:
       - flagright-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Test Data Generator Service
+  data-generator:
+    image: python:3.11-slim
+    container_name: flagright-data-generator
+    restart: "no"  # Run once and exit
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - data_generator_venv:/app/venv
+    environment:
+      PYTHONUNBUFFERED: 1
+    network_mode: host  # Use host network to access localhost:3000 directly
+    depends_on:
+      neo4j:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+      proxy:
+        condition: service_healthy
+    command: >
+      bash -c "
+        echo '🐍 Setting up Python environment for test data generation...' &&
+        echo '📦 Creating virtual environment...' &&
+        python3 -m venv venv &&
+        echo '🔓 Activating virtual environment...' &&
+        . venv/bin/activate &&
+        echo '📥 Installing Python dependencies...' &&
+        pip install --upgrade pip &&
+        pip install -r requirements.txt &&
+        echo '⏳ Waiting for all services to be fully ready...' &&
+        sleep 30 &&
+        echo '🧪 Testing API connectivity...' &&
+        curl -f http://localhost:3000/api/users > /dev/null 2>&1 || echo 'Waiting for API to be available...' &&
+        sleep 10 &&
+        echo '🚀 Starting test data generation...' &&
+        python generate_test_data.py &&
+        echo '✅ Test data generation completed successfully!' &&
+        echo '🔍 You can now access:' &&
+        echo '   - Application: http://localhost:3000' &&
+        echo '   - Neo4j Browser: http://localhost:7474' &&
+        echo '   - API Documentation: http://localhost:3000/api/swagger-ui.html'
+      "
 
 # Named volumes for data persistence
 volumes:
@@ -101,6 +150,8 @@ volumes:
   neo4j_import:
     driver: local
   neo4j_plugins:
+    driver: local
+  data_generator_venv:
     driver: local
 
 # Custom network for service communication
